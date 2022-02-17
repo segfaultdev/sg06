@@ -170,10 +170,6 @@ uint8_t sg_read(sg06_t *state, uint16_t addr) {
   return state->data[addr];
 }
 
-static int is_space(char c) {
-  return (isspace(c) || c == ',');
-}
-
 void sg_write(sg06_t *state, uint16_t addr, uint8_t value) {
   if (addr < 0x2000 || addr == 0xFFF0 || addr >= 0xFFF8) return;
   state->data[addr] = value;
@@ -184,9 +180,11 @@ void sg_byte(FILE *output, uint8_t byte) {
   rel_addr++;
 }
 
+static int is_space(char c) {
+  return (isspace(c) || c == ',');
+}
+
 int sg_token(FILE *file, char *buffer) {
-  // TODO: parentheses
-  
   int in_string = 0;
   int in_paren = 0;
   
@@ -347,7 +345,8 @@ void sg_parse(const char *path, FILE *output) {
       uint16_t value = strtol(arg_1, &end, 0);
       
       if (end == arg_1 + strlen(arg_1)) {
-        sg_byte(output, value);
+        sg_byte(output, (value >> 0) & 0xFF);
+        sg_byte(output, (value >> 8) & 0xFF);
       } else {
         refers = realloc(refers, (refer_count + 1) * sizeof(entry_t));
           
@@ -363,6 +362,19 @@ void sg_parse(const char *path, FILE *output) {
         refers[refer_count++].part = 1;
         
         sg_byte(output, 0x00);
+      }
+    } else if (!strcmp(buffer, "align")) {
+      char arg_1[64];
+      sg_token(file, arg_1);
+      
+      char *end;
+      
+      uint16_t value = strtol(arg_1, &end, 0);
+      
+      if (end == arg_1 + strlen(arg_1)) {
+        while (rel_addr < value) sg_byte(output, 0x00);
+      } else {
+        sg_error(path, "invalid constant", buffer, arg_1, NULL, 1);
       }
     } else if (!strcmp(buffer, "mov") || !strcmp(buffer, "meq") || !strcmp(buffer, "mne")) {
       uint8_t mask = 0x00;
