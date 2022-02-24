@@ -570,7 +570,7 @@ int main(void) {
   token_queue = malloc(TOKEN_QUEUE * sizeof(entry_t));
   printf("org 0x0000\n\n");
   
-  printf("@start:\n");
+  printf("start:\n");
   printf("  ; CLEAR STACK POINTER\n");
   printf("  mov x, 0x20FC\n");
   printf("  mov a, 0x00\n");
