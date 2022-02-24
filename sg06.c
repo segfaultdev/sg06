@@ -616,7 +616,8 @@ static int usage(const char *arg0, int value) {
   printf("  -d / --drive DRIVE.img -> loads a hard drive image, read-only by default\n");
   printf("  -w / --writable        -> makes the loaded drive image writable(if any)\n");
   printf("  -v / --verbose         -> prints some CPU information every single cycle(for debugging)\n");
-  printf("  -s / --start ADDRESS   -> sets the boot address(by default 0x0000, should not change)\n\n");
+  printf("  -s / --start ADDRESS   -> sets the boot address(by default 0x0000, should not change)\n");
+  printf("  -n / --no-halt         -> make 'hlt' act more like an infinite loop\n\n");
   
   printf("made by segfaultdev, 2022\n");
   return value;
@@ -673,10 +674,13 @@ int main(int argc, const char **argv) {
     }
     
     uint16_t start = 0x0000;
+    int no_halt = 0;
     
     for (int i = 3; i < argc; i++) {
       if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--start")) {
         start = strtol(argv[++i], NULL, 0);
+      } else if (!strcmp(argv[i], "-n") || !strcmp(argv[i], "--no-halt")) {
+        no_halt = 1;
       } else {
         printf("error: invalid argument: '%s'\n\n", argv[i]);
         return usage(argv[0], 1);
@@ -690,7 +694,7 @@ int main(int argc, const char **argv) {
     
     InitWindow(84 * SCALE, 48 * SCALE, "sg06");
     
-    while (!WindowShouldClose() && !state.halt) {
+    while (!WindowShouldClose() && (!state.halt || no_halt)) {
       BeginDrawing();
       ClearBackground(BLACK);
       
@@ -725,7 +729,7 @@ int main(int argc, const char **argv) {
       EndDrawing();
       
       int count = (int)(FREQ * GetFrameTime());
-      for (int i = 0; i < count; i++) sg_tick(&state);
+      for (int i = 0; !state.halt && i < count; i++) sg_tick(&state);
     }
     
     sg_free(&state);
