@@ -22,6 +22,9 @@ int refer_count = 0;
 
 uint16_t rel_addr = 0x0000;
 
+uint8_t stack[256];
+int stack_pos = 0;
+
 void sg_init(sg06_t *state, const char *path) {
   state->a = 0;
   state->b = 0;
@@ -160,18 +163,45 @@ void sg_tick(sg06_t *state) {
 }
 
 uint8_t sg_read(sg06_t *state, uint16_t addr) {
-  if (addr >= 0xFFF8) return 0x00;
-  
   if (addr == 0xFFF0) {
     if (key_read_head == key_write_head) return 0x00;
     return key_queue[key_read_head++];
+  } else if (addr == 0xFFF7) {
+    if (stack_pos == 0x00) stack_pos = 0xFF;
+    else stack_pos--;
+    
+    return stack[stack_pos];
+  } else if (addr == 0xFFF8) {
+    return (uint8_t)(((uint16_t)(state->data[0xFFF8]) + (uint16_t)(state->data[0xFFF9])) >> 8) & 1;
+  } else if (addr == 0xFFF9) {
+    return (uint8_t)(((uint16_t)(state->data[0xFFF8]) - (uint16_t)(state->data[0xFFF9])) >> 8) & 1;
+  } else if (addr == 0xFFFA) {
+    return state->data[0xFFF8] & state->data[0xFFF9];
+  } else if (addr == 0xFFFB) {
+    return state->data[0xFFF8] | state->data[0xFFF9];
+  } else if (addr == 0xFFFC) {
+    return state->data[0xFFF8] << state->data[0xFFF9];
+  } else if (addr == 0xFFFD) {
+    return state->data[0xFFF8] >> state->data[0xFFF9];
+  } else if (addr == 0xFFFE) {
+    return (uint8_t)(((uint16_t)(state->data[0xFFF8]) * (uint16_t)(state->data[0xFFF9])) >> 0);
+  } else if (addr == 0xFFFF) {
+    return (uint8_t)(((uint16_t)(state->data[0xFFF8]) * (uint16_t)(state->data[0xFFF9])) >> 8);
   }
   
   return state->data[addr];
 }
 
 void sg_write(sg06_t *state, uint16_t addr, uint8_t value) {
-  if (addr < 0x2000 || addr == 0xFFF0 || addr >= 0xFFF8) return;
+  if (addr < 0x2000 || addr == 0xFFF0 || addr >= 0xFFFA) return;
+  
+  if (addr == 0xFFF7) {
+    stack[stack_pos] = value;
+    stack_pos = (stack_pos + 1) & 0xFF;
+    
+    return;
+  }
+  
   state->data[addr] = value;
 }
 
@@ -403,7 +433,6 @@ void sg_parse(const char *path, FILE *output) {
             sg_byte(output, value);
           } else {
             sg_error(path, "invalid register or constant", buffer, arg_1, arg_2, 2);
-            // TODO: msb and lsb of labels
           }
         }
       } else if (!strcmp(arg_1, "b")) {
@@ -421,7 +450,6 @@ void sg_parse(const char *path, FILE *output) {
             sg_byte(output, value);
           } else {
             sg_error(path, "invalid register or constant", buffer, arg_1, arg_2, 2);
-            // TODO: msb and lsb of labels
           }
         }
       } else if (!strcmp(arg_1, "l")) {
@@ -433,6 +461,46 @@ void sg_parse(const char *path, FILE *output) {
           sg_byte(output, 0x09 | mask);
         } else if (!strcmp(arg_2, "(a ^ b)")) {
           sg_byte(output, 0x0A | mask);
+        } else if (!strcmp(arg_2, "lsb")) {
+          char arg_3[64];
+          sg_token(file, arg_3);
+          
+          sg_byte(output, 0x06 | mask);
+          
+          char *end;
+          uint16_t value = strtol(arg_3, &end, 0);
+          
+          if (end == arg_3 + strlen(arg_3)) {
+            sg_byte(output, value >> 0);
+          } else {
+            refers = realloc(refers, (refer_count + 1) * sizeof(entry_t));
+            
+            strcpy(refers[refer_count].name, arg_3);
+            refers[refer_count].offset = ftell(output);
+            refers[refer_count++].part = 0;
+            
+            sg_byte(output, 0x00);
+          }
+        } else if (!strcmp(arg_2, "msb")) {
+          char arg_3[64];
+          sg_token(file, arg_3);
+          
+          sg_byte(output, 0x06 | mask);
+          
+          char *end;
+          uint16_t value = strtol(arg_3, &end, 0);
+          
+          if (end == arg_3 + strlen(arg_3)) {
+            sg_byte(output, value >> 8);
+          } else {
+            refers = realloc(refers, (refer_count + 1) * sizeof(entry_t));
+            
+            strcpy(refers[refer_count].name, arg_3);
+            refers[refer_count].offset = ftell(output);
+            refers[refer_count++].part = 1;
+            
+            sg_byte(output, 0x00);
+          }
         } else {
           char *end;
           
@@ -455,6 +523,46 @@ void sg_parse(const char *path, FILE *output) {
           sg_byte(output, 0x0E | mask);
         } else if (!strcmp(arg_2, "(a ^ b)")) {
           sg_byte(output, 0x0F | mask);
+        } else if (!strcmp(arg_2, "lsb")) {
+          char arg_3[64];
+          sg_token(file, arg_3);
+          
+          sg_byte(output, 0x0B | mask);
+          
+          char *end;
+          uint16_t value = strtol(arg_3, &end, 0);
+          
+          if (end == arg_3 + strlen(arg_3)) {
+            sg_byte(output, value >> 0);
+          } else {
+            refers = realloc(refers, (refer_count + 1) * sizeof(entry_t));
+            
+            strcpy(refers[refer_count].name, arg_3);
+            refers[refer_count].offset = ftell(output);
+            refers[refer_count++].part = 0;
+            
+            sg_byte(output, 0x00);
+          }
+        } else if (!strcmp(arg_2, "msb")) {
+          char arg_3[64];
+          sg_token(file, arg_3);
+          
+          sg_byte(output, 0x0B | mask);
+          
+          char *end;
+          uint16_t value = strtol(arg_3, &end, 0);
+          
+          if (end == arg_3 + strlen(arg_3)) {
+            sg_byte(output, value >> 8);
+          } else {
+            refers = realloc(refers, (refer_count + 1) * sizeof(entry_t));
+            
+            strcpy(refers[refer_count].name, arg_3);
+            refers[refer_count].offset = ftell(output);
+            refers[refer_count++].part = 1;
+            
+            sg_byte(output, 0x00);
+          }
         } else {
           char *end;
           

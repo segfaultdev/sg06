@@ -1,13 +1,13 @@
-macro swap
-  ! 0x20FE
-  ! 0x20FF
-  ? 0x20FE
-  ? 0x20FF
-end
+include utils.fth
 
-252 dup while
-  dup 255 + dup ! 0xFC
+48 dup while
+  dup 2 swap 255 + dup plot
   255 + dup
-then
+then drop
 
-drop halt
+21 dup while
+  dup dup 31 + swap 255 + 0 putchar
+  255 + dup
+then drop
+
+halt

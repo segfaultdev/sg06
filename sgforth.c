@@ -5,33 +5,126 @@
 #include <ctype.h>
 #include <stdio.h>
 
-entry_t *globals = NULL;
-int global_count = 0;
+#define sg_output(...) {char line_buffer[128]; sprintf(line_buffer, __VA_ARGS__); sg_output_raw(line_buffer);}
 
 macro_t *macros = NULL;
 int macro_count = 0;
 
+entry_t *incasms = NULL;
+int incasm_count = 0;
+
+int global_count = 0;
 int label_count = 0;
 
-entry_t *token_queue = NULL;
+entry_t *token_stack = NULL;
+int token_count = 0;
 
-int token_read = 0;
-int token_write = 0;
+entry_t *lines = NULL;
+int line_count = 0;
 
 static int is_space(char c) {
   return (isspace(c) || c == ',');
 }
 
 static void sg_push(const char *token) {
-  strcpy(token_queue[token_write].name, token);
-  token_write = (token_write + 1) % TOKEN_QUEUE;
+  strcpy(token_stack[token_count++].name, token);
+}
+
+static void sg_pop(char *buffer) {
+  strcpy(buffer, token_stack[--token_count].name);
+}
+
+static void sg_output_raw(const char *line) {
+  lines = realloc(lines, (line_count + 1) * sizeof(entry_t));
+  strcpy(lines[line_count++].name, line);
+}
+
+static void sg_codegen(FILE *output) {
+  entry_t *new_lines = NULL;
+  int new_line_count = 0;
+  
+  int saved_1 = 0;
+  int saved_2 = 0;
+  int saved_3 = 0;
+  int saved_4 = 0;
+  int saved_5 = 0;
+  int saved_6 = 0;
+  
+  for (int i = 0; i < line_count; i++) {
+    if (i < line_count - 1) {
+      if ((!strcmp(lines[i + 0].name, "mov [x], a") && !strcmp(lines[i + 1].name, "mov a, [x]")) ||
+          (!strcmp(lines[i + 0].name, "mov [x], b") && !strcmp(lines[i + 1].name, "mov b, [x]"))) {
+        if (!strcmp(lines[i + 0].name, "mov [x], a")) saved_1 += 2;
+        else saved_2 += 2;
+        
+        i++;
+        continue;
+      } else if (!strcmp(lines[i + 0].name, "mov [x], a") && !strcmp(lines[i + 1].name, "mov b, [x]")) {
+        new_lines = realloc(new_lines, (new_line_count + 1) * sizeof(entry_t));
+        strcpy(new_lines[new_line_count++].name, "mov b, a");
+        
+        saved_3 += 1;
+        
+        i++;
+        continue;
+      } else if (!strcmp(lines[i + 0].name, "mov [x], b") && !strcmp(lines[i + 1].name, "mov a, [x]")) {
+        new_lines = realloc(new_lines, (new_line_count + 1) * sizeof(entry_t));
+        strcpy(new_lines[new_line_count++].name, "mov a, b");
+        
+        saved_4 += 1;
+        
+        i++;
+        continue;
+      }
+    }
+    
+    if (i < line_count - 3) {
+      if ((!strcmp(lines[i + 0].name, "mov [x], (a + b)") || !strcmp(lines[i + 0].name, "mov [x], (a ^ b)")) && (
+          (!strcmp(lines[i + 1].name, "mov a, [x]") && !strcmp(lines[i + 2].name, "mov [x], a") && !strcmp(lines[i + 3].name, "mov [x], a")) ||
+          (!strcmp(lines[i + 1].name, "mov b, [x]") && !strcmp(lines[i + 2].name, "mov [x], b") && !strcmp(lines[i + 3].name, "mov [x], b")))) {
+        new_lines = realloc(new_lines, (new_line_count + 2) * sizeof(entry_t));
+        strcpy(new_lines[new_line_count++].name, lines[i + 0].name);
+        strcpy(new_lines[new_line_count++].name, lines[i + 0].name);
+        
+        if (!strcmp(lines[i + 1].name, "mov a, [x]")) saved_5 += 2;
+        else saved_6 += 2;
+        
+        i += 3;
+        continue;
+      }
+    }
+    
+    new_lines = realloc(new_lines, (new_line_count + 1) * sizeof(entry_t));
+    new_lines[new_line_count++] = lines[i];
+  }
+  
+  fprintf(stderr, "sgforth optimization report:\n");
+  fprintf(stderr, "- %-5d: mov [x], a\n", saved_1);
+  fprintf(stderr, "         mov a, [x]\n");
+  fprintf(stderr, "- %-5d: mov [x], b\n", saved_2);
+  fprintf(stderr, "         mov b, [x]\n");
+  fprintf(stderr, "- %-5d: mov [x], a\n", saved_3);
+  fprintf(stderr, "         mov b, [x]\n");
+  fprintf(stderr, "- %-5d: mov [x], b\n", saved_4);
+  fprintf(stderr, "         mov a, [x]\n");
+  fprintf(stderr, "- %-5d: mov [x], (a +/^ b)\n", saved_5);
+  fprintf(stderr, "         mov a, [x]\n");
+  fprintf(stderr, "         mov [x], a\n");
+  fprintf(stderr, "         mov [x], a\n");
+  fprintf(stderr, "- %-5d: mov [x], (a +/^ b)\n", saved_6);
+  fprintf(stderr, "         mov b, [x]\n");
+  fprintf(stderr, "         mov [x], b\n");
+  fprintf(stderr, "         mov [x], b\n");
+  fprintf(stderr, "- %-5d: TOTAL\n", saved_1 + saved_2 + saved_3 + saved_4 + saved_5 + saved_6);
+  
+  for (int i = 0; i < new_line_count; i++) {
+    fprintf(output, "%s%s\n", strchr(new_lines[i].name, ':') ? "" : "  ", new_lines[i].name);
+  }
 }
 
 int sg_token(FILE *file, char *buffer) {
-  if (token_read != token_write) {
-    strcpy(buffer, token_queue[token_read].name);
-    token_read = (token_read + 1) % TOKEN_QUEUE;
-    
+  if (token_count > 0) {
+    sg_pop(buffer);
     return 1;
   }
   
@@ -80,7 +173,7 @@ int sg_token(FILE *file, char *buffer) {
   
   for (int i = 0; i < macro_count; i++) {
     if (!strcmp(macros[i].name, old_buffer)) {
-      for (int j = 0; j < macros[i].count; j++) {
+      for (int j = macros[i].count - 1; j >= 0; j--) {
         sg_push(macros[i].tokens[j].name);
       }
       
@@ -91,436 +184,283 @@ int sg_token(FILE *file, char *buffer) {
   return 1;
 }
 
-static void sg_parse_raw(FILE *file, FILE *output) {
+static void sg_incasm(const char *path) {
+  incasms = realloc(incasms, (incasm_count + 1) * sizeof(entry_t));
+  strcpy(incasms[incasm_count++].name, path);
+}
+
+static void sg_parse_raw(FILE *file) {
   char buffer[64];
+  int x_is_stack = 0;
   
   while (sg_token(file, buffer)) {
-    fprintf(output, "  ; TOKEN: '%s'\n", buffer);
+    // sg_output("; TOKEN: '%s'", buffer);
     if (!strcmp(buffer, "then")) break;
     
     if (!strcmp(buffer, "+") || !strcmp(buffer, "^")) {
-      // load, decrease and save stack pointer
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // get stack pointer into x
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
+      sg_output("mov a, [x]");
+      sg_output("mov b, [x]");
+      sg_output("mov [x], (a %c b)", *buffer);
+    } else if (!strcmp(buffer, "carry") || !strcmp(buffer, "<") || !strcmp(buffer, "&") || !strcmp(buffer, "|") || !strcmp(buffer, "shl") || !strcmp(buffer, "shr")) {
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // read value at stack pointer to b
-      fprintf(output, "  mov b, [x]\n");
+      sg_output("mov a, [x]");
+      sg_output("mov b, [x]");
       
-      // save b to 0x20FD
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov [x], b\n");
+      if (!strcmp(buffer, "carry")) {
+        sg_output("mov l, 0xF9");
+        sg_output("mov [x], a");
+        sg_output("mov l, 0xF8");
+        sg_output("mov [x], b");
+      } else {
+        sg_output("mov l, 0xF8");
+        sg_output("mov [x], b");
+        sg_output("mov l, 0xF9");
+        sg_output("mov [x], a");
+        
+        if (!strcmp(buffer, "&")) {
+          sg_output("mov l, 0xFA");
+        } else if (!strcmp(buffer, "|")) {
+          sg_output("mov l, 0xFB");
+        } else if (!strcmp(buffer, "shl")) {
+          sg_output("mov l, 0xFC");
+        } else if (!strcmp(buffer, "shr")) {
+          sg_output("mov l, 0xFD");
+        }
+      }
       
-      // decrease and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      sg_output("mov a, [x] ; DONT_OPTIMIZE");
+      sg_output("mov l, 0xF7");
+      sg_output("mov [x], a");
+    } else if (!strcmp(buffer, "*")) {
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // get stack pointer into x
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
-      
-      // read value at stack pointer to b
-      fprintf(output, "  mov b, [x]\n");
-      
-      // load a with the value at 0x20FD
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov a, [x]\n");
-      
-      // store sum/xor into b(by using 0x20FD already set in x)
-      fprintf(output, "  mov [x], (a %c b)\n", *buffer);
-      fprintf(output, "  mov b, [x]\n");
-      
-      // get stack pointer into x
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
-      
-      // store b at stack pointer
-      fprintf(output, "  mov [x], b\n");
-      
-      // increase and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0x01\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      sg_output("mov a, [x]");
+      sg_output("mov b, [x]");
+      sg_output("mov l, 0xF8");
+      sg_output("mov [x], a");
+      sg_output("mov l, 0xF9");
+      sg_output("mov [x], b");
+      sg_output("mov l, 0xFE")
+      sg_output("mov a, [x]");
+      sg_output("mov l, 0xF7");
+      sg_output("mov [x], a");
+      sg_output("mov l, 0xFF")
+      sg_output("mov a, [x]");
+      sg_output("mov l, 0xF7");
+      sg_output("mov [x], a");
     } else if (!strcmp(buffer, "~")) {
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
+      int label_1 = label_count++;
       
-      // read value at stack pointer to b
-      fprintf(output, "  mov b, [x]\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // clear value at stack pointer
-      fprintf(output, "  mov a, 0x00\n");
-      fprintf(output, "  mov [x], a\n");
+      sg_output("mov a, [x]");
+      sg_output("mov b, 0x00");
+      sg_output("mne x, @label_%d", label_1);
+      sg_output("jne x");
+      sg_output("mov b, 0x01");
+      sg_output("@label_%d:", label_1);
+      sg_output("mov x, 0xFFF7");
+      sg_output("mov [x], b");
+    } else if (!strcmp(buffer, "read")) {
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      int label = label_count++;
-      
-      // compare b with 0 and do jump if not equal(we use "mne" instead of "mov" as we want to preserve x if a and b are equal)
-      fprintf(output, "  mne x, @label_%d\n", label);
-      fprintf(output, "  jne x\n", label);
-      
-      // set value at stack pointer to 1
-      fprintf(output, "  mov a, 0x01\n");
-      fprintf(output, "  mov [x], a\n");
-      
-      // declare label
-      fprintf(output, "@label_%d:\n", label);
+      sg_output("mov b, [x]"); // high
+      sg_output("mov a, [x]"); // low
+      sg_output("mov h, b");
+      sg_output("mov l, a");
+      sg_output("mov a, [x]");
+      sg_output("mov x, 0xFFF7");
+      sg_output("mov [x], a");
     } else if (!strcmp(buffer, "@")) {
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
+      char value_raw[64];
+      sg_token(file, value_raw);
       
-      // read value at stack pointer to 0x20FD
-      fprintf(output, "  mov b, [x]\n");
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov [x], b\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
-      
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
-      
-      // read value at stack pointer to 0x20FB
-      fprintf(output, "  mov b, [x]\n");
-      fprintf(output, "  mov l, 0xFB\n");
-      fprintf(output, "  mov [x], b\n");
-      
-      // save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
-      
-      // read 0x20FB to b
-      fprintf(output, "  mov l, 0xFB\n");
-      fprintf(output, "  mov b, [x]\n");
-      
-      // now b contains the lower part and 0x20FD the higher one
-      
-      // read 0x20FD into a
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov a, [x]\n");
-      
-      // set the address and read into b
-      fprintf(output, "  mov h, a\n");
-      fprintf(output, "  mov l, b\n");
-      fprintf(output, "  mov b, [x]\n");
-      
-      // get stack pointer into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
-      
-      // store value at stack pointer
-      fprintf(output, "  mov [x], b\n");
-      
-      // increase and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0x01\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      sg_output("mov a, [x]"); // low
+      sg_output("mov h, msb %s", value_raw);
+      sg_output("mov l, a");
+      sg_output("mov a, [x]");
+      sg_output("mov x, 0xFFF7");
+      sg_output("mov [x], a");
     } else if (!strcmp(buffer, "!")) {
       char value_raw[64];
       sg_token(file, value_raw);
       
-      char *end;
-      uint8_t value = strtol(value_raw, &end, 0);
-      
-      if (end == value_raw + strlen(value_raw)) {
-        // get stack pointer minus 1 into x
-        fprintf(output, "  mov x, 0x20FC\n");
-        fprintf(output, "  mov a, [x]\n");
-        fprintf(output, "  mov b, 0xFF\n");
-        fprintf(output, "  mov l, (a + b)\n");
-        
-        // read value at stack pointer to 0x20FD
-        fprintf(output, "  mov b, [x]\n");
-        fprintf(output, "  mov l, 0xFD\n");
-        fprintf(output, "  mov [x], b\n");
-        
-        // save new stack pointer
-        fprintf(output, "  mov l, 0xFC\n");
-        fprintf(output, "  mov b, 0xFF\n");
-        fprintf(output, "  mov [x], (a + b)\n");
-        
-        // get stack pointer minus 1 into x
-        fprintf(output, "  mov x, 0x20FC\n");
-        fprintf(output, "  mov a, [x]\n");
-        fprintf(output, "  mov b, 0xFF\n");
-        fprintf(output, "  mov l, (a + b)\n");
-        
-        // get stack pointer minus 1 into x
-        fprintf(output, "  mov x, 0x20FC\n");
-        fprintf(output, "  mov a, [x]\n");
-        fprintf(output, "  mov b, 0xFF\n");
-        fprintf(output, "  mov l, (a + b)\n");
-        
-        // read value at stack pointer to 0x20FB
-        fprintf(output, "  mov b, [x]\n");
-        fprintf(output, "  mov l, 0xFB\n");
-        fprintf(output, "  mov [x], b\n");
-        
-        // save new stack pointer
-        fprintf(output, "  mov l, 0xFC\n");
-        fprintf(output, "  mov b, 0xFF\n");
-        fprintf(output, "  mov [x], (a + b)\n");
-        
-        // read 0x20FB to b
-        fprintf(output, "  mov l, 0xFB\n");
-        fprintf(output, "  mov b, [x]\n");
-        
-        // now b contains the byte to write and 0x20FD the low part of the address
-        
-        // read 0x20FD into a
-        fprintf(output, "  mov l, 0xFD\n");
-        fprintf(output, "  mov a, [x]\n");
-        
-        // set address and write to it
-        fprintf(output, "  mov h, %d\n", value);
-        fprintf(output, "  mov l, a\n");
-        fprintf(output, "  mov [x], b\n");
-      } else {
-        // TODO: error
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
       }
+      
+      sg_output("mov a, [x]"); // low
+      sg_output("mov b, [x]"); // value
+      sg_output("mov h, msb %s", value_raw);
+      sg_output("mov l, a");
+      sg_output("mov [x], b");
+      
+      x_is_stack = 0;
     } else if (!strcmp(buffer, "?")) {
       char value_raw[64];
       sg_token(file, value_raw);
       
-      // set address and read to b
-      fprintf(output, "  mov x, %s\n", value_raw);
-      fprintf(output, "  mov b, [x]\n");
+      sg_output("mov x, %s", value_raw);
+      sg_output("mov a, [x]");
+      sg_output("mov x, 0xFFF7");
+      sg_output("mov [x], a");
       
-      // get stack pointer into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
-      
-      // store value at stack pointer
-      fprintf(output, "  mov [x], b\n");
-      
-      // increase and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0x01\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      x_is_stack = 1;
     } else if (!strcmp(buffer, "=")) {
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
-      
-      // read value at stack pointer to 0x20FD
-      fprintf(output, "  mov b, [x]\n");
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov [x], b\n");
-      
-      // save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
-      
-      // read 0x20FD to b
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov b, [x]\n");
-      
       char value_raw[64];
       sg_token(file, value_raw);
       
-      // set address and write to it
-      fprintf(output, "  mov x, %s\n", value_raw);
-      fprintf(output, "  mov [x], b\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
+      
+      sg_output("mov a, [x]");
+      sg_output("mov x, %s", value_raw);
+      sg_output("mov [x], a");
+      
+      x_is_stack = 0;
     } else if (!strcmp(buffer, "drop")) {
-      // load, decrease and save stack pointer
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
+      
+      sg_output("mov a, [x]");
     } else if (!strcmp(buffer, "halt")) {
-      // halt
-      fprintf(output, "  hlt\n");
+      sg_output("hlt");
     } else if (!strcmp(buffer, "dup")) {
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // read value at stack pointer to b
-      fprintf(output, "  mov b, [x]\n");
+      sg_output("mov a, [x]");
+      sg_output("mov [x], a");
+      sg_output("mov [x], a");
+    } else if (!strcmp(buffer, "swap")) {
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // get stack pointer into x
-      fprintf(output, "  mov l, a\n");
-        
-      // store value in b at stack pointer
-      fprintf(output, "  mov [x], b\n");
-      
-      // increase and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0x01\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      sg_output("mov a, [x]");
+      sg_output("mov b, [x]");
+      sg_output("mov [x], a");
+      sg_output("mov [x], b");
     } else if (!strcmp(buffer, "if")) {
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
+      int label_1 = label_count++;
       
-      // read value at stack pointer to 0x20FD
-      fprintf(output, "  mov b, [x]\n");
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov [x], b\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      sg_output("mov a, [x]");
+      sg_output("mov b, 0x00");
+      sg_output("meq x, @label_%d", label_1);
+      sg_output("jeq x");
       
-      // read 0x20FD to b
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov b, [x]\n");
+      sg_parse_raw(file);
       
-      int label = label_count++;
-      
-      // jump to end if 0
-      fprintf(output, "  mov a, 0x00\n");
-      fprintf(output, "  meq x, @label_%d\n", label);
-      fprintf(output, "  jeq x\n");
-      
-      // if statement inner code
-      sg_parse_raw(file, output);
-      
-      // add end label
-      fprintf(output, "@label_%d:\n", label);
+      sg_output("@label_%d:", label_1);
+      x_is_stack = 0;
     } else if (!strcmp(buffer, "while")) {
       int label_1 = label_count++;
       int label_2 = label_count++;
       
-      // starting label
-      fprintf(output, "@label_%d:\n", label_1);
+      sg_output("@label_%d:", label_1);
+      sg_output("mov x, 0xFFF7");
+      sg_output("mov a, [x]");
+      sg_output("mov b, 0x00");
+      sg_output("meq x, @label_%d", label_2);
+      sg_output("jeq x");
       
-      // get stack pointer minus 1 into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov l, (a + b)\n");
+      x_is_stack = 1;
+      sg_parse_raw(file);
       
-      // read value at stack pointer to 0x20FD
-      fprintf(output, "  mov b, [x]\n");
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov [x], b\n");
-      
-      // save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0xFF\n");
-      fprintf(output, "  mov [x], (a + b)\n");
-      
-      // read 0x20FD to b
-      fprintf(output, "  mov l, 0xFD\n");
-      fprintf(output, "  mov b, [x]\n");
-      
-      // jump to end if 0
-      fprintf(output, "  mov a, 0x00\n");
-      fprintf(output, "  meq x, @label_%d\n", label_2);
-      fprintf(output, "  jeq x\n");
-      
-      // while statement inner code
-      sg_parse_raw(file, output);
-      
-      // jump to start
-      fprintf(output, "  mov x, @label_%d\n", label_1);
-      fprintf(output, "  jmp x\n");
-      
-      // add end label
-      fprintf(output, "@label_%d:\n", label_2);
+      sg_output("mov x, @label_%d", label_1);
+      sg_output("jmp x");
+      sg_output("@label_%d:", label_2);
+      x_is_stack = 0;
     } else if (!strcmp(buffer, "let")) {
-      sg_token(file, buffer);
+      macro_t macro;
+      sg_token(file, macro.name);
       
-      for (int i = 0; i < global_count; i++) {
-        if (!strcmp(globals[i].name, buffer)) {
-          printf("error: global '%s' already exists\n", buffer);
+      macro.tokens = malloc(sizeof(entry_t));
+      macro.count = 1;
+      
+      sprintf(macro.tokens[0].name, "0x%04X", 0x2000 + global_count++);
+      
+      for (int i = 0; i < macro_count; i++) {
+        if (!strcmp(macros[i].name, macro.name)) {
+          fprintf(stderr, "error: global or macro with name '%s' already exists\n", buffer);
           exit(1);
         }
       }
       
-      globals = realloc(globals, (global_count + 1) * sizeof(entry_t));
-      strcpy(globals[global_count++].name, buffer);
-      
-      char value_raw[64];
-      sg_token(file, value_raw);
-      
-      char *end;
-      uint8_t value = strtol(value_raw, &end, 0);
-      
-      if (end == value_raw + strlen(value_raw)) {
-        // jump to after the global variable
-        fprintf(output, "  mov x, @global_end_%s\n", buffer);
-        fprintf(output, "  jmp x\n");
-        
-        fprintf(output, "%s:\n", buffer);
-        fprintf(output, "  db %d\n", value);
-        fprintf(output, "@global_end_%s:\n", buffer);
-      } else {
-        // TODO: error
-      }
+      macros = realloc(macros, (macro_count + 1) * sizeof(macro_t));
+      macros[macro_count++] = macro;
     } else if (!strcmp(buffer, "ptr")) {
       char value_raw[64];
       sg_token(file, value_raw);
       
-      // set b to lower part
-      fprintf(output, "  mov d, %s\n", value_raw);
-      fprintf(output, "  mov b, a\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // get stack pointer into x
-      fprintf(output, "  mov x, 0x20FC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
+      sg_output("mov d, %s", value_raw);
+      sg_output("mov [x], a");
+      sg_output("mov [x], b");
+    } else if (!strcmp(buffer, "lsb")) {
+      char value_raw[64];
+      sg_token(file, value_raw);
       
-      // store b at stack pointer
-      fprintf(output, "  mov [x], b\n");
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
       
-      // increase and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0x01\n");
-      fprintf(output, "  mov [x], (a + b)\n");
-      
-      // set b to higher part
-      fprintf(output, "  mov d, %s\n", value_raw);
-      
-      // get stack pointer into x
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov a, [x]\n");
-      fprintf(output, "  mov l, a\n");
-      
-      // store b at stack pointer
-      fprintf(output, "  mov [x], b\n");
-      
-      // increase and save new stack pointer
-      fprintf(output, "  mov l, 0xFC\n");
-      fprintf(output, "  mov b, 0x01\n");
-      fprintf(output, "  mov [x], (a + b)\n");
+      sg_output("mov a, lsb %s", value_raw);
+      sg_output("mov [x], a");
     } else if (!strcmp(buffer, "macro")) {
       macro_t macro;
       sg_token(file, macro.name);
       
       macro.tokens = NULL;
       macro.count = 0;
+      
+      for (int i = 0; i < macro_count; i++) {
+        if (!strcmp(macros[i].name, macro.name)) {
+          fprintf(stderr, "error: global or macro with name '%s' already exists\n", buffer);
+          exit(1);
+        }
+      }
       
       while (sg_token(file, buffer)) {
         if (!strcmp(buffer, "end")) break;
@@ -531,52 +471,97 @@ static void sg_parse_raw(FILE *file, FILE *output) {
       
       macros = realloc(macros, (macro_count + 1) * sizeof(macro_t));
       macros[macro_count++] = macro;
+    } else if (!strcmp(buffer, "include")) {
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      if (value_raw[0] == '"') {
+        value_raw[strlen(value_raw) - 1] = '\0';
+        sg_parse(value_raw + 1);
+      } else {
+        sg_parse(value_raw);
+      }
+    } else if (!strcmp(buffer, "incasm")) {
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      if (value_raw[0] == '"') {
+        value_raw[strlen(value_raw) - 1] = '\0';
+        sg_incasm(value_raw + 1);
+      } else {
+        sg_incasm(value_raw);
+      }
+      
+      x_is_stack = 0;
+    } else if (!strcmp(buffer, "asm")) {
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      if (value_raw[0] == '"') {
+        value_raw[strlen(value_raw) - 1] = '\0';
+        sg_output("%s", value_raw + 1);
+      } else {
+        sg_output("%s", value_raw);
+      }
+      
+      x_is_stack = 0;
     } else {
       char *end;
       uint8_t value = strtol(buffer, &end, 0);
       
       if (end == buffer + strlen(buffer)) {
-        // get stack pointer into x
-        fprintf(output, "  mov x, 0x20FC\n");
-        fprintf(output, "  mov a, [x]\n");
-        fprintf(output, "  mov l, a\n");
+        if (!x_is_stack) {
+          sg_output("mov x, 0xFFF7");
+          x_is_stack = 1;
+        }
         
-        // store value at stack pointer
-        fprintf(output, "  mov b, %d\n", value);
-        fprintf(output, "  mov [x], b\n");
-        
-        // increase and save new stack pointer
-        fprintf(output, "  mov l, 0xFC\n");
-        fprintf(output, "  mov b, 0x01\n");
-        fprintf(output, "  mov [x], (a + b)\n");
+        sg_output("mov a, %d", value);
+        sg_output("mov [x], a");
+      } else {
+        // TODO: error
       }
     }
   }
 }
 
-void sg_parse(const char *path, FILE *output) {
+void sg_parse(const char *path) {
   FILE *file = fopen(path, "r");
   
   if (!file) {
-    printf("error: cannot open file: '%s'\n", path);
+    fprintf(stderr, "error: cannot open file: '%s'\n", path);
     exit(1);
   }
   
-  sg_parse_raw(file, output);
+  sg_parse_raw(file);
   fclose(file);
 }
 
 int main(void) {
-  token_queue = malloc(TOKEN_QUEUE * sizeof(entry_t));
-  printf("org 0x0000\n\n");
+  token_stack = malloc(TOKEN_STACK * sizeof(entry_t));
+  printf("org 0x0000\n");
   
-  printf("start:\n");
-  printf("  ; CLEAR STACK POINTER\n");
-  printf("  mov x, 0x20FC\n");
-  printf("  mov a, 0x00\n");
-  printf("  mov [x], a\n");
+  printf("@start:\n");
+  sg_parse("test.fth");
   
-  sg_parse("test.fth", stdout);
+  sg_codegen(stdout);
+  
+  for (int i = 0; i < incasm_count; i++) {
+    FILE *file = fopen(incasms[i].name, "r");
+    
+    if (!file) {
+      // TODO: error
+      continue;
+    }
+    
+    while (!feof(file)) {
+      char chr;
+      
+      fread(&chr, 1, 1, file);
+      fwrite(&chr, 1, 1, stdout);
+    }
+    
+    fclose(file);
+  }
   
   return 0;
 }

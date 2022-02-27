@@ -1,3 +1,9 @@
+6500
+1081
+953
+937
+377
+
 # registers:
 
 ```
@@ -77,5 +83,11 @@ control register(write):
 0xFFF1 - 0xFFF1 -> drive control register(r/w)
 0xFFF2 - 0xFFF5 -> drive LBA address register(r/w)
 0xFFF6 - 0xFFF6 -> drive data register(r/w)
-0xFFF7 - 0xFFF7 -> video monochrome Y start(r/w) -> if 48 or higher no monochrome filter will be applied
-0xFFF8 - 0xFFFF -> reserved
+0xFFF7 - 0xFFF7 -> external hardware stack register
+0xFFF8 - 0xFFF8 -> external ALU first operand / external ALU carry from addition
+0xFFF9 - 0xFFF9 -> external ALU second operand / external ALU carry from subtraction
+0xFFFA - 0xFFFA -> external ALU & result
+0xFFFB - 0xFFFB -> external ALU | result
+0xFFFC - 0xFFFC -> external ALU shl result
+0xFFFD - 0xFFFD -> external ALU shr result
+0xFFFE - 0xFFFF -> external ALU multiplication result(first byte represents lsb)
