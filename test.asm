@@ -1,7 +1,7 @@
 org 0x0000
 @start:
   mov x, 0xFFF7
-  mov a, 48
+  mov a, 8
   mov [x], a
   mov [x], a
 @label_0:
@@ -13,73 +13,33 @@ org 0x0000
   mov x, 0xFFF7
   mov a, [x]
   mov [x], a
+  mov x, 0x200B
   mov [x], a
-  mov a, 2
+  mov x, 0xFFF7
+  mov a, 21
+  mov [x], a
+  mov [x], a
+@label_2:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, 0x00
+  meq x, @label_3
+  jeq x
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov [x], a
+  mov [x], a
+  mov a, 31
   mov b, [x]
+  mov [x], (a + b)
+  mov x, 0x200B
+  mov a, [x]
+  mov x, 0xFFF7
   mov [x], a
-  mov [x], b
   mov a, 255
   mov b, [x]
   mov [x], (a + b)
-  mov [x], (a + b)
-  mov a, [x]
-  mov x, 0x2004
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 3
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFA
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov [x], a
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, [x]
-  mov x, 0x2005
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFC
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov x, 0x2005
-  mov [x], a
-  mov x, 0x2004
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov a, 2
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFD
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov b, [x]
-  mov [x], a
-  mov [x], b
   mov a, 21
   mov b, [x]
   mov l, 0xF8
@@ -93,252 +53,7 @@ org 0x0000
   mov l, 0xFF
   mov a, [x]
   mov l, 0xF7
-  mov x, 0x2002
-  mov [x], a
-  mov x, 0xFFF7
   mov a, [x]
-  mov x, 0x2000
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov x, 0x2001
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2001
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, [x]
-  mov x, 0x2003
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xF8
-  mov [x], b
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov [x], a
-  mov x, 0x2002
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, 252
-  mov b, [x]
-  mov [x], (a + b)
-  mov x, 0x2003
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov x, 0x2000
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov x, 0x2001
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2001
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, a
-  mov a, [x]
-  mov h, b
-  mov l, a
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov x, 0x2005
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 252
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_2
-  jne x
-  mov b, 0x01
-@label_2:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_3
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFC00
-  mov l, a
-  mov [x], b
-@label_3:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 253
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_4
-  jne x
-  mov b, 0x01
-@label_4:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_5
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFD00
-  mov l, a
-  mov [x], b
-@label_5:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 254
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_6
-  jne x
-  mov b, 0x01
-@label_6:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_7
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFE00
-  mov l, a
-  mov [x], b
-@label_7:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 255
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_8
-  jne x
-  mov b, 0x01
-@label_8:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_9
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFF00
-  mov l, a
-  mov [x], b
-@label_9:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov a, 255
-  mov b, [x]
-  mov [x], (a + b)
-  mov [x], (a + b)
-  mov x, @label_0
-  jmp x
-@label_1:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov a, 21
-  mov [x], a
-  mov [x], a
-@label_10:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, 0x00
-  meq x, @label_11
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov [x], a
-  mov a, 31
   mov b, [x]
   mov [x], (a + b)
   mov a, [x]
@@ -348,8 +63,15 @@ org 0x0000
   mov a, 255
   mov b, [x]
   mov [x], (a + b)
-  mov a, 0
+  mov x, 0x200B
+  mov a, [x]
+  mov x, 0xFFF7
   mov [x], a
+  mov a, 255
+  mov b, [x]
+  mov [x], (a + b)
+  mov [x], (a + b)
+  mov a, [x]
   mov [x], a
   mov b, [x]
   mov [x], (a + b)
@@ -433,11 +155,11 @@ org 0x0000
   mov a, 3
   mov [x], a
   mov [x], a
-@label_12:
+@label_4:
   mov x, 0xFFF7
   mov a, [x]
   mov b, 0x00
-  meq x, @label_13
+  meq x, @label_5
   jeq x
   mov x, 0xFFF7
   mov a, [x]
@@ -456,11 +178,11 @@ org 0x0000
   mov a, 4
   mov [x], a
   mov [x], a
-@label_14:
+@label_6:
   mov x, 0xFFF7
   mov a, [x]
   mov b, 0x00
-  meq x, @label_15
+  meq x, @label_7
   jeq x
   mov x, 0xFFF7
   mov a, 255
@@ -676,14 +398,14 @@ org 0x0000
   mov [x], (a ^ b)
   mov a, [x]
   mov b, 0x00
-  mne x, @label_16
+  mne x, @label_8
   jne x
   mov b, 0x01
-@label_16:
+@label_8:
   mov x, 0xFFF7
   mov a, b
   mov b, 0x00
-  meq x, @label_17
+  meq x, @label_9
   jeq x
   mov x, 0xFFF7
   mov a, [x]
@@ -700,12 +422,366 @@ org 0x0000
   mov h, msb 0xFC00
   mov l, a
   mov [x], b
-@label_17:
+@label_9:
   mov x, 0xFFF7
   mov a, [x]
   mov [x], a
   mov [x], a
   mov a, 253
+  mov b, [x]
+  mov [x], (a ^ b)
+  mov a, [x]
+  mov b, 0x00
+  mne x, @label_10
+  jne x
+  mov b, 0x01
+@label_10:
+  mov x, 0xFFF7
+  mov a, b
+  mov b, 0x00
+  meq x, @label_11
+  jeq x
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, [x]
+  mov [x], a
+  mov [x], b
+  mov x, 0x2005
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], a
+  mov a, b
+  mov b, [x]
+  mov h, msb 0xFD00
+  mov l, a
+  mov [x], b
+@label_11:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov [x], a
+  mov a, 254
+  mov b, [x]
+  mov [x], (a ^ b)
+  mov a, [x]
+  mov b, 0x00
+  mne x, @label_12
+  jne x
+  mov b, 0x01
+@label_12:
+  mov x, 0xFFF7
+  mov a, b
+  mov b, 0x00
+  meq x, @label_13
+  jeq x
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, [x]
+  mov [x], a
+  mov [x], b
+  mov x, 0x2005
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], a
+  mov a, b
+  mov b, [x]
+  mov h, msb 0xFE00
+  mov l, a
+  mov [x], b
+@label_13:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov [x], a
+  mov a, 255
+  mov b, [x]
+  mov [x], (a ^ b)
+  mov a, [x]
+  mov b, 0x00
+  mne x, @label_14
+  jne x
+  mov b, 0x01
+@label_14:
+  mov x, 0xFFF7
+  mov a, b
+  mov b, 0x00
+  meq x, @label_15
+  jeq x
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, [x]
+  mov [x], a
+  mov [x], b
+  mov x, 0x2005
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], a
+  mov a, b
+  mov b, [x]
+  mov h, msb 0xFF00
+  mov l, a
+  mov [x], b
+@label_15:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov x, 0x2009
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov [x], a
+  mov x, @label_6
+  jmp x
+@label_7:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov x, 0x2006
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov a, 1
+  mov b, [x]
+  mov [x], (a + b)
+  mov a, [x]
+  mov x, 0x2006
+  mov [x], a
+  mov x, 0x2008
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov a, 4
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], b
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xFD
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov x, 0x2008
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, 4
+  mov [x], a
+  mov [x], a
+@label_16:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, 0x00
+  meq x, @label_17
+  jeq x
+  mov x, 0xFFF7
+  mov a, 255
+  mov b, [x]
+  mov [x], (a + b)
+  mov [x], (a + b)
+  mov a, [x]
+  mov x, 0x2009
+  mov [x], a
+  mov x, 0x2008
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], a
+  mov a, b
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], b
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xFD
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov [x], a
+  mov a, 1
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], b
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xFA
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov [x], a
+  mov [x], a
+  mov b, [x]
+  mov [x], (a + b)
+  mov a, [x]
+  mov b, [x]
+  mov [x], (a + b)
+  mov x, 0x2007
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov x, 0x2009
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], (a + b)
+  mov x, 0x2006
+  mov a, [x]
+  mov x, 0xFFF7
+  mov x, 0x2004
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov [x], a
+  mov a, 3
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], b
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xFA
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov [x], a
+  mov b, [x]
+  mov [x], (a + b)
+  mov a, [x]
+  mov x, 0x2005
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, [x]
+  mov [x], a
+  mov [x], b
+  mov x, 0x2005
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], b
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xFC
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov x, 0x2005
+  mov [x], a
+  mov x, 0x2004
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], a
+  mov [x], b
+  mov a, 2
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], b
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xFD
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov b, [x]
+  mov [x], a
+  mov [x], b
+  mov a, 21
+  mov b, [x]
+  mov l, 0xF8
+  mov [x], a
+  mov l, 0xF9
+  mov [x], b
+  mov l, 0xFE
+  mov a, [x]
+  mov l, 0xF7
+  mov [x], a
+  mov l, 0xFF
+  mov a, [x]
+  mov l, 0xF7
+  mov x, 0x2002
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov x, 0x2000
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov x, 0x2001
+  mov [x], a
+  mov x, 0x2000
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov x, 0x2001
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov x, 0x2000
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], (a + b)
+  mov a, [x]
+  mov x, 0x2003
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov b, [x]
+  mov l, 0xF9
+  mov [x], a
+  mov l, 0xF8
+  mov [x], b
+  mov a, [x] ; DONT_OPTIMIZE
+  mov l, 0xF7
+  mov [x], a
+  mov x, 0x2002
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], (a + b)
+  mov a, 252
+  mov b, [x]
+  mov [x], (a + b)
+  mov x, 0x2003
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], a
+  mov a, b
+  mov x, 0x2000
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov x, 0x2001
+  mov [x], a
+  mov x, 0x2000
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov x, 0x2001
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov x, 0x2000
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, a
+  mov a, [x]
+  mov h, b
+  mov l, a
+  mov a, [x]
+  mov x, 0xFFF7
+  mov [x], a
+  mov x, 0x2005
+  mov a, [x]
+  mov x, 0xFFF7
+  mov b, [x]
+  mov [x], (a ^ b)
+  mov a, [x]
+  mov x, 0x2005
+  mov [x], a
+  mov x, 0xFFF7
+  mov a, [x]
+  mov [x], a
+  mov [x], a
+  mov a, 252
   mov b, [x]
   mov [x], (a ^ b)
   mov a, [x]
@@ -731,7 +807,7 @@ org 0x0000
   mov [x], a
   mov a, b
   mov b, [x]
-  mov h, msb 0xFD00
+  mov h, msb 0xFC00
   mov l, a
   mov [x], b
 @label_19:
@@ -739,7 +815,7 @@ org 0x0000
   mov a, [x]
   mov [x], a
   mov [x], a
-  mov a, 254
+  mov a, 253
   mov b, [x]
   mov [x], (a ^ b)
   mov a, [x]
@@ -765,7 +841,7 @@ org 0x0000
   mov [x], a
   mov a, b
   mov b, [x]
-  mov h, msb 0xFE00
+  mov h, msb 0xFD00
   mov l, a
   mov [x], b
 @label_21:
@@ -773,7 +849,7 @@ org 0x0000
   mov a, [x]
   mov [x], a
   mov [x], a
-  mov a, 255
+  mov a, 254
   mov b, [x]
   mov [x], (a ^ b)
   mov a, [x]
@@ -799,381 +875,27 @@ org 0x0000
   mov [x], a
   mov a, b
   mov b, [x]
-  mov h, msb 0xFF00
+  mov h, msb 0xFE00
   mov l, a
   mov [x], b
 @label_23:
   mov x, 0xFFF7
   mov a, [x]
-  mov x, 0x2009
-  mov a, [x]
-  mov x, 0xFFF7
   mov [x], a
   mov [x], a
-  mov x, @label_14
-  jmp x
-@label_15:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov x, 0x2006
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov a, 1
+  mov a, 255
   mov b, [x]
-  mov [x], (a + b)
+  mov [x], (a ^ b)
   mov a, [x]
-  mov x, 0x2006
-  mov [x], a
-  mov x, 0x2008
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov a, 4
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFD
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov x, 0x2008
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, 4
-  mov [x], a
-  mov [x], a
+  mov b, 0x00
+  mne x, @label_24
+  jne x
+  mov b, 0x01
 @label_24:
   mov x, 0xFFF7
-  mov a, [x]
+  mov a, b
   mov b, 0x00
   meq x, @label_25
-  jeq x
-  mov x, 0xFFF7
-  mov a, 255
-  mov b, [x]
-  mov [x], (a + b)
-  mov [x], (a + b)
-  mov a, [x]
-  mov x, 0x2009
-  mov [x], a
-  mov x, 0x2008
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFD
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov [x], a
-  mov a, 1
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFA
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov [x], a
-  mov [x], a
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, [x]
-  mov b, [x]
-  mov [x], (a + b)
-  mov x, 0x2007
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2009
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a + b)
-  mov x, 0x2006
-  mov a, [x]
-  mov x, 0xFFF7
-  mov x, 0x2004
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 3
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFA
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov [x], a
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, [x]
-  mov x, 0x2005
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFC
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov x, 0x2005
-  mov [x], a
-  mov x, 0x2004
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov a, 2
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], b
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xFD
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov a, 21
-  mov b, [x]
-  mov l, 0xF8
-  mov [x], a
-  mov l, 0xF9
-  mov [x], b
-  mov l, 0xFE
-  mov a, [x]
-  mov l, 0xF7
-  mov [x], a
-  mov l, 0xFF
-  mov a, [x]
-  mov l, 0xF7
-  mov x, 0x2002
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov x, 0x2000
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov x, 0x2001
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2001
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, [x]
-  mov x, 0x2003
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov l, 0xF9
-  mov [x], a
-  mov l, 0xF8
-  mov [x], b
-  mov a, [x] ; DONT_OPTIMIZE
-  mov l, 0xF7
-  mov [x], a
-  mov x, 0x2002
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a + b)
-  mov a, 252
-  mov b, [x]
-  mov [x], (a + b)
-  mov x, 0x2003
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov x, 0x2000
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov x, 0x2001
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2001
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2000
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, a
-  mov a, [x]
-  mov h, b
-  mov l, a
-  mov a, [x]
-  mov x, 0xFFF7
-  mov [x], a
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov x, 0x2005
-  mov [x], a
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 252
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_26
-  jne x
-  mov b, 0x01
-@label_26:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_27
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFC00
-  mov l, a
-  mov [x], b
-@label_27:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 253
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_28
-  jne x
-  mov b, 0x01
-@label_28:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_29
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFD00
-  mov l, a
-  mov [x], b
-@label_29:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 254
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_30
-  jne x
-  mov b, 0x01
-@label_30:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_31
-  jeq x
-  mov x, 0xFFF7
-  mov a, [x]
-  mov b, [x]
-  mov [x], a
-  mov [x], b
-  mov x, 0x2005
-  mov a, [x]
-  mov x, 0xFFF7
-  mov b, [x]
-  mov [x], a
-  mov a, b
-  mov b, [x]
-  mov h, msb 0xFE00
-  mov l, a
-  mov [x], b
-@label_31:
-  mov x, 0xFFF7
-  mov a, [x]
-  mov [x], a
-  mov [x], a
-  mov a, 255
-  mov b, [x]
-  mov [x], (a ^ b)
-  mov a, [x]
-  mov b, 0x00
-  mne x, @label_32
-  jne x
-  mov b, 0x01
-@label_32:
-  mov x, 0xFFF7
-  mov a, b
-  mov b, 0x00
-  meq x, @label_33
   jeq x
   mov x, 0xFFF7
   mov a, [x]
@@ -1190,7 +912,7 @@ org 0x0000
   mov h, msb 0xFF00
   mov l, a
   mov [x], b
-@label_33:
+@label_25:
   mov x, 0xFFF7
   mov a, [x]
   mov x, 0x2009
@@ -1198,9 +920,9 @@ org 0x0000
   mov x, 0xFFF7
   mov [x], a
   mov [x], a
-  mov x, @label_24
+  mov x, @label_16
   jmp x
-@label_25:
+@label_17:
   mov x, 0xFFF7
   mov a, [x]
   mov x, 0x2006
@@ -1221,18 +943,27 @@ org 0x0000
   mov b, [x]
   mov [x], (a + b)
   mov [x], (a + b)
-  mov x, @label_12
+  mov x, @label_4
   jmp x
-@label_13:
+@label_5:
   mov x, 0xFFF7
   mov a, [x]
   mov a, 255
   mov b, [x]
   mov [x], (a + b)
   mov [x], (a + b)
-  mov x, @label_10
+  mov x, @label_2
   jmp x
-@label_11:
+@label_3:
+  mov x, 0xFFF7
+  mov a, [x]
+  mov a, 255
+  mov b, [x]
+  mov [x], (a + b)
+  mov [x], (a + b)
+  mov x, @label_0
+  jmp x
+@label_1:
   mov x, 0xFFF7
   mov a, [x]
   hlt
