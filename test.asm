@@ -30,9 +30,6 @@ org 0x0000
   mov [x], a
   mov [x], a
   mov [x], a
-  mov a, 31
-  mov b, [x]
-  mov [x], (a + b)
   mov x, 0x200B
   mov a, [x]
   mov x, 0xFFF7

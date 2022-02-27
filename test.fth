@@ -11,7 +11,7 @@ let pos_y
   dup = pos_y
   
   21 dup while
-    dup dup 31 + ? pos_y 255 + 21 * drop + swap 255 + ? pos_y 255 + putchar
+    dup dup ? pos_y 255 + 21 * drop + swap 255 + ? pos_y 255 + putchar
     255 + dup
   then drop
   
