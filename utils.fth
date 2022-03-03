@@ -13,6 +13,19 @@ let temp_9
 let temp_10
 let temp_11
 
+let temp_12
+let temp_13
+let temp_14
+
+let temp_15
+let temp_16
+let temp_17
+let temp_18
+let temp_19
+let temp_20
+
+ptr start jump
+
 macro times_2
   dup +
 end
@@ -39,15 +52,10 @@ macro dup_2
 end
 
 macro putchar_dup
-  = temp_1 ; y
-  2 + dup 255 +
-  = temp_2 ; x
-  ? temp_1 ; y
-  ? temp_2 ; x
-  ? temp_1 ; y
-  ? temp_2 ; x
-  255 +
-  ? temp_1 ; y
+  = temp_2 = temp_1
+  ? temp_1 2 + ? temp_2 ? temp_1 2 carry +
+  ? temp_1 1 + ? temp_2 ? temp_1 2 carry +
+  ? temp_1 ? temp_2
 end
 
 macro -
@@ -65,7 +73,7 @@ macro pos_to_addr
 end
 
 ; (color x y --)
-macro plot
+func plot
   = temp_5 dup 3 & dup + = temp_6 swap ? temp_6 shl = temp_6 ? temp_5 pos_to_addr dup_2 read ? temp_6 ^ = temp_6
   
   dup 0xFC ^ ~ if
@@ -85,7 +93,7 @@ macro plot
   then
   
   drop
-end
+then
 
 ; (char x y --)
 macro putchar
@@ -97,7 +105,7 @@ macro putchar
     read = temp_9
     
     4 dup while
-      255 + dup = temp_10 ? temp_9 swap shr 1 & times_3 ? temp_8 ? temp_10 + ? temp_7 plot
+      255 + dup = temp_10 ? temp_9 swap shr 1 & times_3 ? temp_8 ? temp_10 + ? temp_7 call plot
       ? temp_10 dup
     then drop
     
@@ -105,7 +113,7 @@ macro putchar
     ? temp_9 4 shr = temp_9
     
     4 dup while
-      255 + dup = temp_10 ? temp_9 swap shr 1 & times_3 ? temp_8 ? temp_10 + ? temp_7 plot
+      255 + dup = temp_10 ? temp_9 swap shr 1 & times_3 ? temp_8 ? temp_10 + ? temp_7 call plot
       ? temp_10 dup
     then drop
     
@@ -113,5 +121,38 @@ macro putchar
     ? temp_11 255 + dup
   then drop
 end
+
+; (low high x y --)
+func puts
+  = temp_12 = temp_13
+  
+  dup_2 read dup while
+    224 + ? temp_13 ? temp_12 putchar
+    ? temp_13 1 + = temp_13
+    swap 1 dup_2 + = temp_14 carry + ? temp_14 swap
+    dup_2 read dup
+  then
+  
+  drop drop drop
+then
+
+; (color w h x y --)
+func rect
+  = temp_15 = temp_16 = temp_17 = temp_18
+  
+  ? temp_17 dup while
+    255 + = temp_19
+    
+    ? temp_18 dup while
+      255 + = temp_20
+      
+      dup ? temp_16 ? temp_20 + ? temp_15 ? temp_19 + call plot
+      
+      ? temp_20 dup
+    then drop
+    
+    ? temp_19 dup
+  then drop drop
+then
 
 incasm "fnttable.asm"

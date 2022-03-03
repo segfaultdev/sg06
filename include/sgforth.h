@@ -16,6 +16,7 @@
 // @ and ! will first pop the lower byte(! will also pop the value when writing), and take the higher one from the constant address or label specified AFTER the operator
 // ? and = should be used for reading/writing to fixed addresses or globals, where you push the value(if writing), then place the operator and THEN the variable name or constant address (:
 
+// func: working! (func [NAME] ... then)
 // macros: working! (macro [NAME] ... end)
 // include: working! (include "path/to/file.fth")
 // incasm: working!

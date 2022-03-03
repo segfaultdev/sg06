@@ -1,21 +1,18 @@
 include utils.fth
 
-; 48 dup while
-;   dup 2 swap 255 + dup plot
-;   255 + dup
-; then drop
-
-let pos_y
-
-8 dup while
-  dup = pos_y
+label start
+  ptr line_1 0 0 call puts
+  ptr line_2 0 1 call puts
+  ptr line_3 0 2 call puts
+  ptr line_4 0 3 call puts
   
-  21 dup while
-    dup dup ? pos_y 255 + 21 * drop + swap 255 + ? pos_y 255 + putchar
-    255 + dup
-  then drop
+  2 30 10 4 30 call rect
+  1 30 10 17 35 call rect
   
-  255 + dup
-then drop
+  halt
+then
 
-halt
+str line_1 "hello guys! i'm using"
+str line_2 "function calls to run"
+str line_3 "this, instead of huge"
+str line_4 "and shitty macros  :D"

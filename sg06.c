@@ -347,7 +347,7 @@ void sg_parse(const char *path, FILE *output) {
       sg_token(file, arg_1);
       
       if (*arg_1 == '"') {
-        for (int i = 1; i < strlen(arg_1) - 2; i++) {
+        for (int i = 1; i < strlen(arg_1) - 1; i++) {
           sg_byte(output, arg_1[i]);
         }
       } else {

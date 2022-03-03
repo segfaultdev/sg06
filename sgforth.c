@@ -414,7 +414,7 @@ static void sg_parse_raw(FILE *file) {
       macro.tokens = malloc(sizeof(entry_t));
       macro.count = 1;
       
-      sprintf(macro.tokens[0].name, "0x%04X", 0x2000 + global_count++);
+      sprintf(macro.tokens[0].name, "0x%04X", 0x2001 + global_count++);
       
       for (int i = 0; i < macro_count; i++) {
         if (!strcmp(macros[i].name, macro.name)) {
@@ -499,10 +499,89 @@ static void sg_parse_raw(FILE *file) {
       
       if (value_raw[0] == '"') {
         value_raw[strlen(value_raw) - 1] = '\0';
-        sg_output("%s", value_raw + 1);
+        sg_output("%s ; DONT_OPTIMIZE", value_raw + 1);
       } else {
-        sg_output("%s", value_raw);
+        sg_output("%s ; DONT_OPTIMIZE", value_raw);
       }
+      
+      x_is_stack = 0;
+    } else if (!strcmp(buffer, "func")) {
+      uint16_t addr_l = 0x2001 + global_count++;
+      uint16_t addr_h = 0x2001 + global_count++;
+      
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      sg_output("%s:", value_raw);
+      sg_output("mov x, 0xFFF7");
+      
+      sg_output("mov b, [x]");
+      sg_output("mov a, [x]");
+      
+      sg_output("mov x, 0x%04X", addr_l);
+      sg_output("mov [x], a");
+      sg_output("mov x, 0x%04X", addr_h);
+      sg_output("mov [x], b");
+      
+      x_is_stack = 0;
+      sg_parse_raw(file);
+      
+      sg_output("mov x, 0x%04X", addr_l);
+      sg_output("mov a, [x]");
+      sg_output("mov x, 0x%04X", addr_h);
+      sg_output("mov b, [x]");
+      sg_output("mov l, a");
+      sg_output("mov h, b");
+      sg_output("jmp x");
+    } else if (!strcmp(buffer, "label")) {
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      sg_output("%s:", value_raw);
+      
+      x_is_stack = 0;
+      sg_parse_raw(file);
+    } else if (!strcmp(buffer, "str")) {
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      sg_output("%s:", value_raw);
+      
+      sg_token(file, value_raw);
+      
+      sg_output("str %s", value_raw);
+      sg_output("db 0x00");
+    } else if (!strcmp(buffer, "call")) {
+      int label_1 = label_count++;
+      
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
+      
+      char value_raw[64];
+      sg_token(file, value_raw);
+      
+      sg_output("mov d, @label_%d", label_1);
+      sg_output("mov [x], a");
+      sg_output("mov [x], b");
+      
+      sg_output("mov x, %s", value_raw);
+      sg_output("jmp x");
+      sg_output("@label_%d:", label_1);
+      
+      x_is_stack = 0;
+    } else if (!strcmp(buffer, "jump")) {
+      if (!x_is_stack) {
+        sg_output("mov x, 0xFFF7");
+        x_is_stack = 1;
+      }
+      
+      sg_output("mov a, [x]");
+      sg_output("mov b, [x]");
+      sg_output("mov h, a");
+      sg_output("mov l, b");
+      sg_output("jmp x");
       
       x_is_stack = 0;
     } else {
@@ -538,9 +617,8 @@ void sg_parse(const char *path) {
 
 int main(void) {
   token_stack = malloc(TOKEN_STACK * sizeof(entry_t));
-  printf("org 0x0000\n");
+  printf("org 0x0000\n\n");
   
-  printf("@start:\n");
   sg_parse("test.fth");
   
   sg_codegen(stdout);
